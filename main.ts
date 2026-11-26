@@ -1,19 +1,30 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+// Funniest One-Line Out-of-Office Reply — v2 entry
+// Bounty: u-hamsyh-funniest-one-line-out-of-office-reply-5490c1c8
+// Gate: one line, 1-160 UTF-8 chars.
+
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const TEXT = "I'm out of the office until Monday; your email has been forwarded to my plants, who also can't reply.";
+const ENTRY =
+  "I'm away until Monday. If the meeting ends early without me, please leave that out of the minutes.";
 
-if (TEXT.length < 1 || TEXT.length > 160) {
-  throw new Error(`entry must be 1-160 characters, got ${TEXT.length}`);
-}
-if (TEXT.includes("\n") || TEXT.includes("\r")) {
-  throw new Error("entry must be a single line");
-}
-if (Buffer.byteLength(TEXT + "\n", "utf8") !== 102) {
-  throw new Error(`entry must be exactly 102 bytes, got ${Buffer.byteLength(TEXT + "\n", "utf8")}`);
-}
+const outDir =
+  process.env.MAKEFUN_OUTPUT_DIR || process.env.MAKEFUN_OUTPUT || "/output";
 
-const outDir = process.env.MAKEFUN_OUTPUT ?? "/output";
 mkdirSync(outDir, { recursive: true });
-writeFileSync(join(outDir, "entry.txt"), TEXT + "\n", "utf8");
-console.log(`wrote ${TEXT.length + 1} bytes to ${join(outDir, "entry.txt")}`);
+const outPath = join(outDir, "entry.txt");
+writeFileSync(outPath, ENTRY, "utf8");
+
+// Self-check: read back from the output dir and verify byte-exact.
+const back = readFileSync(outPath, "utf8");
+if (back !== ENTRY) {
+  throw new Error("self-check failed: entry.txt does not match ENTRY");
+}
+if (back.length !== 98 || back.endsWith("\n")) {
+  throw new Error("self-check failed: entry must be exactly 98 chars, no trailing newline");
+}
+if (back.includes("\n")) {
+  throw new Error("self-check failed: entry must be a single line");
+}
+
+console.log("Wrote entry.txt (98 chars, byte-exact).");
